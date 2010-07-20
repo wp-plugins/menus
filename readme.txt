@@ -1,5 +1,5 @@
 === Menus ===
-Contributors: D Sader
+Contributors: dsader
 Donate link: http://dsader.snowotherway.org
 Tags: menus, administration menus, admin menus, multisite, toggle admin menus
 Requires at least: 3.0
