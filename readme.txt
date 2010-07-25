@@ -35,11 +35,15 @@ This section describes how to install the plugin and get it working.
 3. Uploads Disabled by Super Admin
 
 == Changelog ==
-= 3.0.0 = 
+= 3.0.1 = 
+Fixed a typo keeping Plugins menu disabled.
 
+= 3.0.0 = 
 initial release
 
 == Upgrade Notice ==
-= 3.0.0 = 
+= 3.0.1 =
+Fixed a typo keeping Plugins menu disabled.
 
+= 3.0.0 = 
 initial release
