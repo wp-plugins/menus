@@ -35,6 +35,9 @@ This section describes how to install the plugin and get it working.
 3. Uploads Disabled by Super Admin
 
 == Changelog ==
+= 3.0.2 = 
+Fixed a typo keeping Plugin Editor menu enabled for SuperAdmins.
+
 = 3.0.1 = 
 Fixed a typo keeping Plugins menu disabled.
 

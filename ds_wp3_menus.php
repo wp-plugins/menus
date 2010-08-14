@@ -4,7 +4,7 @@ Plugin Name: Menus
 Plugin URI: http://wordpress.org/extend/plugins/menus/
 Description: WP3.0 Multisite "mu-plugin" to toggle more of the administration menus in the same way "Plugins" is already toggled. Go to Super Admin-->Options to "Enable administration menus". All menus are unchecked and disabled by default, except for Super Admin.
 Author: dsader
-Version: 3.0.1
+Version: 3.0.2
 Author URI: http://dsader.snowotherway.org
 
  This program is free software; you can redistribute it and/or modify
@@ -415,7 +415,7 @@ function ds_menu_disable() {
 	if( $menu_perms[ 'plug_ed' ] != '1' && current_user_can('edit_plugins')) { 
 		if(!empty($submenu['plugins.php'])) {
 		foreach($submenu['plugins.php'] as $key => $sm) {
-			if(__($sm[0]) == "Add New" || $sm[2] == "plugin-editor.php") {
+			if(__($sm[0]) == "Editor" || $sm[2] == "plugin-editor.php") {
 				unset($submenu['plugins.php'][$key]);
 				break;
 				}
