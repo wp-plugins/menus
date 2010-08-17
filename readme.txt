@@ -36,17 +36,17 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 = 3.0.2 = 
-Fixed a typo keeping Plugin Editor menu enabled for SuperAdmins.
+* Fixed a typo keeping Plugin Editor menu enabled for SuperAdmins.
 
 = 3.0.1 = 
-Fixed a typo keeping Plugins menu disabled.
+* Fixed a typo keeping Plugins menu disabled.
 
 = 3.0.0 = 
-initial release
+* initial release
 
 == Upgrade Notice ==
 = 3.0.1 =
-Fixed a typo keeping Plugins menu disabled.
+* Fixed a typo keeping Plugins menu disabled.
 
 = 3.0.0 = 
-initial release
+* initial release
