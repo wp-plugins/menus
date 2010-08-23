@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Menus
-Plugin URI: http://wordpress.org/extend/plugins/menus/
+Plugin URI: http://dsader.snowotherway.org/wordpress-plugins/menus/
 Description: WP3.0 Multisite "mu-plugin" to toggle more of the administration menus in the same way "Plugins" is already toggled. Go to Super Admin-->Options to "Enable administration menus". All menus are unchecked and disabled by default, except for Super Admin.
 Author: D. Sader
 Version: 3.0.2
