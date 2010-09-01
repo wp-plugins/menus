@@ -4,7 +4,7 @@ Plugin Name: Menus
 Plugin URI: http://wordpress.org/extend/plugins/menus/
 Description: WP3.0 Multisite "mu-plugin" to toggle more of the administration menus in the same way "Plugins" is already toggled. Go to Super Admin-->Options to "Enable administration menus". All menus are unchecked and disabled by default, except for Super Admin.
 Author: dsader
-Version: 3.0.3
+Version: 3.0.3.1
 Author URI: http://dsader.snowotherway.org
 
  This program is free software; you can redistribute it and/or modify
@@ -139,9 +139,8 @@ function ds_menu_disable() {
 				}
 			}
 		}
-
-		if( strpos($_SERVER['REQUEST_URI'], 'edit.php'))	// plugin settings will redirect, too.	
-			wp_redirect('profile.php');
+		//else 'Pages' will redirect too	
+		if( strpos($_SERVER['REQUEST_URI'], 'edit.php') && !strpos($_SERVER['REQUEST_URI'], 'edit.php?post_type=page'))			wp_redirect('profile.php');
 	}
 		
 	// 'Posts Add New'
@@ -154,7 +153,8 @@ function ds_menu_disable() {
 				}
 			}
 		}
-		if( strpos($_SERVER['REQUEST_URI'], 'post-new.php'))		
+	//else 'Pages Add New' will redirect too	
+		if( strpos($_SERVER['REQUEST_URI'], 'post-new.php') && !strpos($_SERVER['REQUEST_URI'], 'post-new.php?post_type=page'))		
 			wp_redirect('profile.php');
 	}	
 
@@ -312,13 +312,13 @@ function ds_menu_disable() {
 	if( $menu_perms[ 'pages_new' ] != '1' && current_user_can('edit_pages')) {
 		if(!empty($submenu['edit.php?post_type=page'])) {
 		foreach($submenu['edit.php?post_type=page'] as $key => $sm) {
-			if(__($sm[0]) == __('Add New') || $sm[2] == "edit.php?post_type=page") {
-				unset($submenu['edit.php?post_type=page'][$key]);
+			if(__($sm[0]) == __('Add New') || $sm[2] == "post-new.php?post_type=page") {
+				unset($submenu['post-new.php?post_type=page'][$key]);
 				break;
 				}
 			}
 		}
-		if( strpos($_SERVER['REQUEST_URI'], 'edit.php?post_type=page'))		
+		if( strpos($_SERVER['REQUEST_URI'], 'post-new.php?post_type=page'))		
 			wp_redirect('profile.php');
 	}
 	

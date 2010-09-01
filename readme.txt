@@ -35,6 +35,9 @@ This section describes how to install the plugin and get it working.
 3. Uploads Disabled by Super Admin
 
 == Changelog ==
+= 3.0.3.1 =
+* fixed typo where if Add New Post menu was hidden, Add New Page would redirect, too.
+
 = 3.0.3 = 
 * Added WPLANG multi language support tags
 
@@ -48,6 +51,9 @@ This section describes how to install the plugin and get it working.
 * initial release
 
 == Upgrade Notice ==
+= 3.0.3.1 =
+* fixed typo where if Add New Post menu was hidden, Add New Page would redirect, too.
+
 = 3.0.3 =
 * Added WPLANG multi language support tags
 
