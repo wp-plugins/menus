@@ -2,14 +2,14 @@
 Contributors: dsader
 Donate link: http://dsader.snowotherway.org
 Tags: menus, administration menus, admin menus, multisite, toggle admin menus
-Requires at least: 3.0
-Tested up to: 3.0
+Requires at least: 3.2.1
+Tested up to: 3.2.1
 Stable tag: Trunk
 
-WP3.0 multisite "mu-plugin" to toggle adminstration menus for the entire network of sites. Just drop in mu-plugins.
+WP3.2.1 multisite "mu-plugin" to toggle adminstration menus for the entire network of sites. Just drop in mu-plugins.
 
 == Description ==
-Enable or disable WP3 Multisite Backend Menus. Adds options to toggle administration menus at Super Admin->Optons page under "Menu Settings". WP3 already toggles the Plugins menu, I've added a bunch more in the same/similar way.
+Enable or disable WP3 Multisite Backend Menus. Adds options to toggle administration menus at Network Admin->Settings page under "Menu Settings". WP3 already toggles the Plugins menu, I've added a bunch more in the same/similar way.
 
 I use the plugin to simplify the menus available to the entire network of sites. I use this plugin in a school(k-12) WP3 Multisite installation to disable the Deltete Blog, Permalinks, Import, Media Upload, Add Users and Themes menus.
 
@@ -18,7 +18,7 @@ I use the plugin to simplify the menus available to the entire network of sites.
 This section describes how to install the plugin and get it working.
 
 1. Upload `ds_wp3_menus.php` to the `/wp-content/mu-plugins/` directory
-2. Set multisite "Menu Settings" option at SuperAdmin->Options page
+2. Set multisite "Menu Settings" option at Network Admin->Settings page
 
 == Frequently Asked Questions ==
 
@@ -35,6 +35,9 @@ This section describes how to install the plugin and get it working.
 3. Uploads Disabled by Super Admin
 
 == Changelog ==
+= 3.2.1.1 =
+* Tested up to: WP3.2.1
+
 = 3.0.3.1 =
 * fixed typo where if Add New Post menu was hidden, Add New Page would redirect, too.
 

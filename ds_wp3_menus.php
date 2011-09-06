@@ -2,9 +2,9 @@
 /*
 Plugin Name: Menus
 Plugin URI: http://wordpress.org/extend/plugins/menus/
-Description: WP3.0 Multisite "mu-plugin" to toggle more of the administration menus in the same way "Plugins" is already toggled. Go to Super Admin-->Options to "Enable administration menus". All menus are unchecked and disabled by default, except for Super Admin.
+Description: WP3.0 Multisite "mu-plugin" to toggle more of the administration menus in the same way "Plugins" is already toggled. Go to Network Admin-->Settings->Menu Settings to "Enable administration menus". All menus are unchecked and disabled by default, except for Super Admin.
 Author: dsader
-Version: 3.0.3.1
+Version: 3.2.1.1
 Author URI: http://dsader.snowotherway.org
 
  This program is free software; you can redistribute it and/or modify
@@ -33,28 +33,28 @@ add_action( 'admin_menu', 'ds_remove_themes_utility_last' ); // remove and redir
 function ds_reduce_favorite_actions ($actions) {
 	$menu_perms = get_site_option( "menu_items" );
 
-	if(( $menu_perms[ 'super_admin' ] != '1' ) && (is_super_admin())) 
+	if( !isset( $menu_perms[ 'super_admin' ] ) && is_super_admin()) 
 	return $actions;
 
 		$remove_menu_items = array(''); // start with an empty array
 		
-			if( $menu_perms[ 'posts_new' ] != '1' && current_user_can('edit_posts') ) {
+			if( !isset( $menu_perms[ 'posts_new' ] ) && current_user_can('edit_posts') ) {
 		$remove_menu_items = array('post-new.php','edit.php?post_status=draft');
 			}
-			if( $menu_perms[ 'pages_new' ] != '1' && current_user_can('edit_pages')) {
+			if( !isset( $menu_perms[ 'pages_new' ] ) && current_user_can('edit_pages')) {
 		$remove_menu_items = array_merge(array('post-new.php?post_type=page'),$remove_menu_items); // merge the existing or empty arrays and continue
 			}
-			if( $menu_perms[ 'media_new' ] != '1' && current_user_can('upload_files')) {
+			if( !isset( $menu_perms[ 'media_new' ] ) && current_user_can('upload_files')) {
 		$remove_menu_items = array_merge(array('media-new.php'),$remove_menu_items); 
 			}
 
-			if( $menu_perms[ 'comments' ] != '1' && current_user_can('edit_posts')) {
+			if( !isset( $menu_perms[ 'comments' ] ) && current_user_can('edit_posts')) {
 		$remove_menu_items = array_merge(array('edit-comments.php'),$remove_menu_items); 
 			}
 
-		foreach($remove_menu_items as $menu_item)
+		foreach( $remove_menu_items as $menu_item)
 		{
-			if(array_key_exists($menu_item, $actions))
+			if( array_key_exists($menu_item, $actions))
 			{
 				unset($actions[$menu_item]);
 			}
@@ -72,11 +72,11 @@ function ds_menu_disable() {
 		
 
 
-			if(( $menu_perms[ 'super_admin' ] != '1' ) && (is_super_admin())) 
+			if( !isset($menu_perms[ 'super_admin' ] ) && is_super_admin()) 
 			return;
 
 	// 'Dashboard'
-	if( $menu_perms[ 'menu-dashboard' ] != '1' && current_user_can('read')) {
+	if( !isset($menu_perms[ 'menu-dashboard' ]) && current_user_can('read')) {
 		if(!empty($menu)) {
 			foreach($menu as $key => $sm) {
 			if(__($sm[0]) == __('Dashboard') || $sm[2] == "index.php") {
@@ -89,7 +89,7 @@ function ds_menu_disable() {
 	}
 
 	// 'Dashboard Dashboard'
-	if( $menu_perms[ 'dash_dash' ] != '1' && current_user_can('read')) {
+	if( !isset($menu_perms[ 'dash_dash' ]) && current_user_can('read')) {
 		if(!empty($submenu['index.php'])) {
 		foreach($submenu['index.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Dashboard') || $sm[2] == "index.php") {
@@ -103,7 +103,7 @@ function ds_menu_disable() {
 	}
 
 	// 'Dashboard My Sites'
-	if( $menu_perms[ 'dash_mysites' ] != '1' && current_user_can('read')) {
+	if( !isset($menu_perms[ 'dash_mysites' ]) && current_user_can('read')) {
 		if(!empty($submenu['index.php'])) {
 		foreach($submenu['index.php'] as $key => $sm) {
 			if(__($sm[0]) == __('My Sites') || $sm[2] == "my-sites.php") {
@@ -117,7 +117,7 @@ function ds_menu_disable() {
 	}
 
 	// 'Posts'
-	if( $menu_perms[ 'menu-posts' ] != '1' && (current_user_can('edit_posts'))) {
+	if( !isset($menu_perms[ 'menu-posts' ]) && (current_user_can('edit_posts'))) {
 		if(!empty($menu)) {
 			foreach($menu as $key => $sm) {
 			if(__($sm[0]) == __('Posts') || $sm[2] == "edit.php") {
@@ -130,7 +130,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Posts Posts'
-	if( $menu_perms[ 'posts_posts' ] != '1' && current_user_can('edit_posts')) {
+	if( !isset($menu_perms[ 'posts_posts' ]) && current_user_can('edit_posts')) {
 		if(!empty($submenu['edit.php'])) {
 		foreach($submenu['edit.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Posts') || $sm[2] == "edit.php") {
@@ -140,11 +140,12 @@ function ds_menu_disable() {
 			}
 		}
 		//else 'Pages' will redirect too	
-		if( strpos($_SERVER['REQUEST_URI'], 'edit.php') && !strpos($_SERVER['REQUEST_URI'], 'edit.php?post_type=page'))			wp_redirect('profile.php');
+		if( strpos($_SERVER['REQUEST_URI'], 'edit.php') && !strpos($_SERVER['REQUEST_URI'], 'edit.php?post_type=page'))
+		wp_redirect('profile.php');
 	}
 		
 	// 'Posts Add New'
-	if( $menu_perms[ 'posts_new' ] != '1' && current_user_can('edit_posts') ) {
+	if( !isset($menu_perms[ 'posts_new' ]) && current_user_can('edit_posts') ) {
 		if(!empty($submenu['edit.php'])) {
 		foreach($submenu['edit.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Add New') || $sm[2] == "post-new.php") {
@@ -159,7 +160,7 @@ function ds_menu_disable() {
 	}	
 
 	// 'Posts Tags'
-	if( $menu_perms[ 'posts_tags' ] != '1' && current_user_can('manage_categories')) {
+	if( !isset($menu_perms[ 'posts_tags' ]) && current_user_can('manage_categories')) {
 		if(!empty($submenu['edit.php'])) {
 		foreach($submenu['edit.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Post Tags') || $sm[2] == "edit-tags.php?taxonomy=post_tag") {
@@ -173,7 +174,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Posts Categories'
-	if( $menu_perms[ 'posts_cats' ] != '1' && current_user_can('manage_categories') ) {
+	if( !isset($menu_perms[ 'posts_cats' ]) && current_user_can('manage_categories') ) {
 		if(!empty($submenu['edit.php'])) {
 		foreach($submenu['edit.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Categories') || $sm[2] == "edit-tags.php?taxonomy=category") {
@@ -187,7 +188,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Media'
-	if( $menu_perms[ 'menu-media' ] != '1' && current_user_can('upload_files')) {
+	if( !isset($menu_perms[ 'menu-media' ]) && current_user_can('upload_files')) {
 		if(!empty($menu)) {
 		foreach($menu as $key => $sm) {
 			if(__($sm[0]) == __('Media') || $sm[2] == "upload.php") {
@@ -200,7 +201,7 @@ function ds_menu_disable() {
 	}
 		
 	// 'Media Library'
-	if( $menu_perms[ 'media_lib' ] != '1' && current_user_can('upload_files')) {
+	if( !isset($menu_perms[ 'media_lib' ]) && current_user_can('upload_files')) {
 		if(!empty($submenu['upload.php'])) {
 		foreach($submenu['upload.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Library') || $sm[2] == "upload.php") {
@@ -214,7 +215,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Media Add New'
-	if( $menu_perms[ 'media_new' ] != '1' && current_user_can('upload_files')) {
+	if( !isset($menu_perms[ 'media_new' ]) && current_user_can('upload_files')) {
 		if(!empty($submenu['upload.php'])) {
 		foreach($submenu['upload.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Add New') || $sm[2] == "media-new.php") {
@@ -227,7 +228,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Links'
-	if( $menu_perms[ 'menu-links' ] != '1' && (current_user_can('manage_links'))) {
+	if( !isset($menu_perms[ 'menu-links' ]) && (current_user_can('manage_links'))) {
 		if(!empty($menu)) {
 			foreach($menu as $key => $sm) {
 			if(__($sm[0]) == __('Links') || $sm[2] == "link-manager.php") {
@@ -240,7 +241,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Links Links'
-	if( $menu_perms[ 'links_links' ] != '1' && current_user_can('manage_links')) {
+	if( !isset($menu_perms[ 'links_links' ]) && current_user_can('manage_links')) {
 		if(!empty($submenu['link-manager.php'])) {
 		foreach($submenu['link-manager.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Links') || $sm[2] == "link-manager.php") {
@@ -254,7 +255,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Links Add New'
-	if( $menu_perms[ 'links_new' ] != '1' && current_user_can('manage_links') ) {
+	if( !isset($menu_perms[ 'links_new' ]) && current_user_can('manage_links') ) {
 		if(!empty($submenu['link-manager.php'])) {
 		foreach($submenu['link-manager.php'] as $key => $sm) {
 			if(__($sm[0]) == ('Link') || $sm[2] == "link-add.php") {
@@ -268,7 +269,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Links Link Categories'
-	if( $menu_perms[ 'links_cats' ] != '1' && current_user_can('manage_categories')) {
+	if( !isset($menu_perms[ 'links_cats' ]) && current_user_can('manage_categories')) {
 		if(!empty($submenu['link-manager.php'])) {
 		foreach($submenu['link-manager.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Link Categories') || $sm[2] == "edit-link-categories.php") { 
@@ -282,7 +283,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Pages'
-	if( $menu_perms[ 'menu-pages' ] != '1' && (current_user_can('edit_pages'))) {
+	if( !isset($menu_perms[ 'menu-pages' ]) && (current_user_can('edit_pages'))) {
 		if(!empty($menu)) {
 			foreach($menu as $key => $sm) {
 			if(__($sm[0]) == __('Pages') || $sm[2] == "edit.php?post_type=page" ) {
@@ -295,7 +296,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Pages Pages'
-	if( $menu_perms[ 'pages_pages' ] != '1' && current_user_can('edit_pages')) {
+	if( !isset($menu_perms[ 'pages_pages' ]) && current_user_can('edit_pages')) {
 		if(!empty($submenu['edit.php?post_type=page'])) {
 		foreach($submenu['edit.php?post_type=page'] as $key => $sm) {
 			if(__($sm[0]) == __('Pages') || $sm[2] == "edit.php?post_type=page") {
@@ -309,7 +310,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Pages Add New'
-	if( $menu_perms[ 'pages_new' ] != '1' && current_user_can('edit_pages')) {
+	if( !isset($menu_perms[ 'pages_new' ]) && current_user_can('edit_pages')) {
 		if(!empty($submenu['edit.php?post_type=page'])) {
 		foreach($submenu['edit.php?post_type=page'] as $key => $sm) {
 			if(__($sm[0]) == __('Add New') || $sm[2] == "post-new.php?post_type=page") {
@@ -323,7 +324,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Comments'
-	if( $menu_perms[ 'menu-comments' ] != '1' && current_user_can('edit_posts')) {
+	if( !isset($menu_perms[ 'menu-comments' ]) && current_user_can('edit_posts')) {
 		if(!empty($menu)) {
 		foreach($menu as $key => $sm) {
 			if(__($sm[0]) == __('Comments') || $sm[2] == "edit-comments.php") {
@@ -338,7 +339,7 @@ function ds_menu_disable() {
 	}	
 	
 	// If 'Appearance' is hidden, Widgets and Themes are still url accessible
-	if( $menu_perms[ 'menu-appearance' ] != '1' && current_user_can('switch_themes')) {
+	if( !isset($menu_perms[ 'menu-appearance' ]) && current_user_can('switch_themes')) {
 		if(!empty($menu)) {
 		foreach($menu as $key => $sm) {
 			if(__($sm[0]) == __('Appearance')) {
@@ -351,7 +352,7 @@ function ds_menu_disable() {
 	}	 // best not to redirect here, either
 	
 	// 'Appearance Themes'
-	if( $menu_perms[ 'app_themes' ] != '1' && current_user_can('switch_themes')) { 
+	if( !isset($menu_perms[ 'app_themes' ]) && current_user_can('switch_themes')) { 
 		if(!empty($submenu['themes.php'])) {
 		foreach($submenu['themes.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Themes') || $sm[2] == "themes.php") {
@@ -368,7 +369,7 @@ function ds_menu_disable() {
 	}
 
 	// 'Appearance Widgets'
-	if( $menu_perms[ 'app_widgets' ] != '1' && current_user_can('edit_theme_options')) { 
+	if( !isset($menu_perms[ 'app_widgets' ]) && current_user_can('edit_theme_options')) { 
 		if(!empty($submenu['themes.php'])) {
 		foreach($submenu['themes.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Widgets') || $sm[2] == "widgets.php") {
@@ -384,7 +385,7 @@ function ds_menu_disable() {
 	}
 
 	// 'Appearance Menus'
-	if( $menu_perms[ 'app_men' ] != '1' && current_user_can('edit_theme_options')) { 
+	if( !isset($menu_perms[ 'app_men' ]) && current_user_can('edit_theme_options')) { 
 		if(!empty($submenu['themes.php'])) {
 		foreach($submenu['themes.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Menus') || $sm[2] == "nav-menus.php") {
@@ -398,7 +399,7 @@ function ds_menu_disable() {
 	}
 
 	// 'Plugins Plugins'
-	if( $menu_perms[ 'plug_plug' ] != '1' && current_user_can('activate_plugins')) { 
+	if( !isset($menu_perms[ 'plug_plug' ]) && current_user_can('activate_plugins')) { 
 		if(!empty($submenu['plugins.php'])) {
 		foreach($submenu['plugins.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Plugins') || $sm[2] == "plugins.php") {
@@ -412,7 +413,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Plugins Add New'
-	if( $menu_perms[ 'plug_ad' ] != '1' && current_user_can('install_plugins')) { 
+	if( !isset($menu_perms[ 'plug_ad' ]) && current_user_can('install_plugins')) { 
 		if(!empty($submenu['plugins.php'])) {
 		foreach($submenu['plugins.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Add New') || $sm[2] == "plugin-install.php") {
@@ -426,7 +427,7 @@ function ds_menu_disable() {
 	}
 
 	// 'Plugins Editor'
-	if( $menu_perms[ 'plug_ed' ] != '1' && current_user_can('edit_plugins')) { 
+	if( !isset($menu_perms[ 'plug_ed' ]) && current_user_can('edit_plugins')) { 
 		if(!empty($submenu['plugins.php'])) {
 		foreach($submenu['plugins.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Editor') || $sm[2] == "plugin-editor.php") {
@@ -441,7 +442,7 @@ function ds_menu_disable() {
 	}
 	
 	// if no 'Users' promote 'Profile'
-	if( $menu_perms[ 'menu-users' ] != '1' && current_user_can('list_users') ) {
+	if( !isset($menu_perms[ 'menu-users' ]) && current_user_can('list_users') ) {
 		if(!empty($menu)) {
 		foreach($menu as $key => $sm) {
 			if(__($sm[0]) == "Users") {
@@ -458,7 +459,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Users Authors and Users'
-	if( $menu_perms[ 'users_user' ] != '1' && current_user_can('list_users')) {
+	if( !isset($menu_perms[ 'users_user' ]) && current_user_can('list_users')) {
 		if(!empty($submenu['users.php'])) {
 		foreach($submenu['users.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Authors &amp; Users') || $sm[2] == "users.php") {
@@ -472,7 +473,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Users Add New'
-	if( $menu_perms[ 'users_new' ] != '1' && current_user_can('create_users')) {
+	if( !isset($menu_perms[ 'users_new' ]) && current_user_can('create_users')) {
 		if(!empty($submenu['users.php'])) {
 		foreach($submenu['users.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Add New') || $sm[2] == "users-new.php") {
@@ -486,7 +487,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Users Your Profile'
-	if( $menu_perms[ 'user_profile' ] != '1' && current_user_can('read')) {
+	if( !isset($menu_perms[ 'user_profile' ]) && current_user_can('read')) {
 		if(!empty($submenu['users.php'])) {
 		foreach($submenu['users.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Your Profile') || $sm[2] == "profile.php") {
@@ -494,7 +495,7 @@ function ds_menu_disable() {
 				break;
 				}
 			} 
-		} elseif(( $menu_perms[ 'user_profile' ] != '1' && current_user_can('read')) && !empty($menu)) {
+		} elseif(( !isset($menu_perms[ 'user_profile' ]) && current_user_can('read')) && !empty($menu)) {
 			foreach($menu as $key => $sm) {
 				if(!empty($sm[0])) {
 			if(__($sm[0]) == __('Profile') || $sm[2] == "profile.php") {
@@ -507,7 +508,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Tools'
-	if( $menu_perms[ 'menu-tools' ] != '1' && current_user_can('edit_posts')) {
+	if( !isset($menu_perms[ 'menu-tools' ]) && current_user_can('edit_posts')) {
 		if(!empty($menu)) {
 		foreach($menu as $key => $sm) {
 			if(__($sm[0]) == __('Tools') || $sm[2] == "tools.php") {
@@ -522,7 +523,7 @@ function ds_menu_disable() {
 	}
 		
 	// 'Tools Tools'
-	if( $menu_perms[ 'tools_tools' ] != '1' && current_user_can('edit_posts')) {
+	if( !isset($menu_perms[ 'tools_tools' ]) && current_user_can('edit_posts')) {
 		if(!empty($submenu['tools.php'])) {
 		foreach($submenu['tools.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Tools') || $sm[2] == "tools.php") {
@@ -536,7 +537,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Tools Import'
-	if( $menu_perms[ 'tools_im' ] != '1' && current_user_can('import')) {
+	if( !isset($menu_perms[ 'tools_im' ]) && current_user_can('import')) {
 		if(!empty($submenu['tools.php'])) {
 		foreach($submenu['tools.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Import') || $sm[2] == "import.php") {
@@ -550,7 +551,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Tools Export'
-	if( $menu_perms[ 'tools_ex' ] != '1' && current_user_can('import')) {
+	if( !isset($menu_perms[ 'tools_ex' ]) && current_user_can('import')) {
 		if(!empty($submenu['tools.php'])) {
 		foreach($submenu['tools.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Export') || $sm[2] == "export.php") {
@@ -564,7 +565,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Tools Delete Site'
-	if( $menu_perms[ 'tools_del' ] != '1' && current_user_can('manage_options')) {
+	if( !isset($menu_perms[ 'tools_del' ]) && current_user_can('manage_options')) {
 		if(!empty($submenu['tools.php'])) {
 		foreach($submenu['tools.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Delete Site') || $sm[2] == "ms-delete-site.php") {
@@ -578,7 +579,7 @@ function ds_menu_disable() {
 	}
 
 	// 'Settings'
-		if( $menu_perms[ 'menu-settings' ] != '1' && current_user_can('manage_options')) {
+		if( !isset($menu_perms[ 'menu-settings' ]) && current_user_can('manage_options')) {
 			if(!empty($menu)) {
 		foreach($menu as $key => $sm) {
 			if(__($sm[0]) == __('Settings') || $sm[2] == "options-general.php") {
@@ -593,7 +594,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Settings General'
-	if( $menu_perms[ 'settings_gen' ] != '1' && current_user_can('manage_options')) {
+	if( !isset($menu_perms[ 'settings_gen' ]) && current_user_can('manage_options')) {
 		if(!empty($submenu['options-general.php'])) {
 		foreach($submenu['options-general.php'] as $key => $sm) {
 			if(__($sm[0]) == __('General') || $sm[2] == "options-general.php") {
@@ -607,7 +608,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Settings Writing'
-	if( $menu_perms[ 'settings_writ' ] != '1' && current_user_can('manage_options')) {
+	if( !isset($menu_perms[ 'settings_writ' ]) && current_user_can('manage_options')) {
 		if(!empty($submenu['options-general.php'])) {
 		foreach($submenu['options-general.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Writing') || $sm[2] == "options-writing.php") {
@@ -621,7 +622,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Settings Reading'
-	if( $menu_perms[ 'settings_read' ] != '1' && current_user_can('manage_options')) {
+	if( !isset($menu_perms[ 'settings_read' ]) && current_user_can('manage_options')) {
 		if(!empty($submenu['options-general.php'])) {
 		foreach($submenu['options-general.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Reading') || $sm[2] == "options-reading.php") {
@@ -635,7 +636,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Settings Discussion'
-	if( $menu_perms[ 'settings_disc' ] != '1' && current_user_can('manage_options')) {
+	if( !isset($menu_perms[ 'settings_disc' ]) && current_user_can('manage_options')) {
 		if(!empty($submenu['options-general.php'])) {
 		foreach($submenu['options-general.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Discussion') || $sm[2] == "options-discussion.php") {
@@ -649,7 +650,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Settings Media'
-	if( $menu_perms[ 'settings_med' ] != '1' && current_user_can('manage_options')) {
+	if( !isset($menu_perms[ 'settings_med' ]) && current_user_can('manage_options')) {
 		if(!empty($submenu['options-general.php'])) {
 		foreach($submenu['options-general.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Media') || $sm[2] == "options-media.php") {
@@ -663,7 +664,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Settings Privacy'
-	if( $menu_perms[ 'settings_priv' ] != '1' && current_user_can('manage_options')) {
+	if( !isset($menu_perms[ 'settings_priv' ]) && current_user_can('manage_options')) {
 		if(!empty($submenu['options-general.php'])) {
 		foreach($submenu['options-general.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Privacy') || $sm[2] == "options-privacy.php") {
@@ -677,7 +678,7 @@ function ds_menu_disable() {
 	}
 	
 	// 'Settings Permalinks'
-	if( $menu_perms[ 'settings_perm' ] != '1' && current_user_can('manage_options')) {
+	if( !isset($menu_perms[ 'settings_perm' ]) && current_user_can('manage_options')) {
 		if(!empty($submenu['options-general.php'])) {
 		foreach($submenu['options-general.php'] as $key => $sm) {
 			if(__($sm[0]) == __('Permalinks') || $sm[2] == "options-permalink.php") {
@@ -697,9 +698,9 @@ function ds_remove_themes_utility_last() {
 	$menu_perms = get_site_option( "menu_items" );
 	if( is_array( $menu_perms ) == false )
 		$menu_perms = array();
-			if(( $menu_perms[ 'super_admin' ] != '1' ) && (is_super_admin()))
+			if( !isset($menu_perms[ 'super_admin' ] ) && is_super_admin())
 			return;
-	if( $menu_perms[ 'app_ed' ] != '1' ) {
+	if( !isset($menu_perms[ 'app_ed' ]) ) {
 			remove_action('admin_menu', '_add_themes_utility_last',101);
 
 		if( strpos($_SERVER['REQUEST_URI'], 'theme-editor.php'))	
