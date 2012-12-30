@@ -15,7 +15,7 @@ Enable or disable WP3 Multisite Backend Menus. Adds options to toggle administra
 
 I use the plugin to simplify the menus available to the entire network of sites. I use this plugin in a WP3.5 Multisite installation to disable the Deltete Blog, Permalinks, Import, Add Users and Themes menus.
 
-The plugin also removes a some of the admin bar menu items as well.
+The plugin also removes some of the admin bar menu items as well.
 
 == Installation ==
 
