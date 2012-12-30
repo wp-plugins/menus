@@ -2,10 +2,11 @@
 /*
 Plugin Name: Menus
 Plugin URI: http://wordpress.org/extend/plugins/menus/
-Description: WP3.0 Multisite "mu-plugin" to toggle more of the administration menus in the same way "Plugins" is already toggled. Go to Network Admin-->Settings->Menu Settings to "Enable administration menus". All menus are unchecked and disabled by default, except for Super Admin.
+Version: 3.5
+Description: WP3.5 Multisite "mu-plugin" to toggle more of the administration menus in the same way "Plugins" is already toggled. Go to Network-->Settings->Menu Settings to "Enable administration menus". All menus are unchecked and disabled by default, except when logged in as Network Admin.
 Author: dsader
-Version: 3.2.1.1
 Author URI: http://dsader.snowotherway.org
+Network: true
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,58 +20,56 @@ Author URI: http://dsader.snowotherway.org
  
 */ 
 
+class ds_menus {
+function ds_menus() {
 //------------------------------------------------------------------------//
 //---Hooks----------------------------------------------------------------//
 //------------------------------------------------------------------------//
-add_filter( 'mu_menu_items', 'ds_mu_menu_options' ); // hook SuperAdmin->Options
-add_action( 'wpmu_options','ds_menu_option', -99 ); // add a note below the SuperAdmin->Options
-add_action( '_admin_menu', 'ds_menu_disable', 99 ); // toggles the menus - high priority catches widgets menu, too.
-add_filter( 'favorite_actions', 'ds_reduce_favorite_actions' ); //hook admin head favorites
-add_action( 'admin_menu', 'ds_remove_themes_utility_last' ); // remove and redirect requests for theme editor
+add_filter( 'mu_menu_items', array(&$this, 'ds_mu_menu_options' )); // hook Network->Settings
+add_action( 'wpmu_options', array(&$this, 'ds_menu_option'), -99 ); // add a note below the Network->Settings
+add_action( '_admin_menu', array(&$this, 'ds_menu_disable'), 99 ); // toggles the menus - high priority catches widgets menu, too.
+add_filter( 'admin_bar_menu', array(&$this, 'ds_reduce_favorite_actions'), 999 ); //hook admin head favorites
+}
 //------------------------------------------------------------------------//
 //---Functions to Enable/Disable admin menus------------------------------//
 //------------------------------------------------------------------------//
-function ds_reduce_favorite_actions ($actions) {
+function ds_reduce_favorite_actions ($wp_toolbar) {
 	$menu_perms = get_site_option( "menu_items" );
 
 	if( !isset( $menu_perms[ 'super_admin' ] ) && is_super_admin()) 
-	return $actions;
-
-		$remove_menu_items = array(''); // start with an empty array
+	return $wp_toolbar;
 		
-			if( !isset( $menu_perms[ 'posts_new' ] ) && current_user_can('edit_posts') ) {
-		$remove_menu_items = array('post-new.php','edit.php?post_status=draft');
-			}
-			if( !isset( $menu_perms[ 'pages_new' ] ) && current_user_can('edit_pages')) {
-		$remove_menu_items = array_merge(array('post-new.php?post_type=page'),$remove_menu_items); // merge the existing or empty arrays and continue
-			}
-			if( !isset( $menu_perms[ 'media_new' ] ) && current_user_can('upload_files')) {
-		$remove_menu_items = array_merge(array('media-new.php'),$remove_menu_items); 
-			}
-
-			if( !isset( $menu_perms[ 'comments' ] ) && current_user_can('edit_posts')) {
-		$remove_menu_items = array_merge(array('edit-comments.php'),$remove_menu_items); 
-			}
-
-		foreach( $remove_menu_items as $menu_item)
-		{
-			if( array_key_exists($menu_item, $actions))
-			{
-				unset($actions[$menu_item]);
-			}
+		if( !isset( $menu_perms[ 'posts_new' ] ) && current_user_can('edit_posts') ) {
+			$wp_toolbar->remove_node( 'new-post' );
 		}
-	
-	return $actions;
+		if( !isset( $menu_perms[ 'media_new' ] ) && current_user_can('upload_files')) {
+			$wp_toolbar->remove_node( 'new-media' );
+		}
+		if( !isset( $menu_perms[ 'links_new' ] ) && current_user_can('manage_links')) {
+			$wp_toolbar->remove_node( 'new-link' );
+		}
+		if( !isset( $menu_perms[ 'pages_new' ] ) && current_user_can('edit_pages')) {
+			$wp_toolbar->remove_node( 'new-page' );
+		}
+		if( !isset( $menu_perms[ 'users_new' ] ) && current_user_can('create_users')) {
+			$wp_toolbar->remove_node( 'new-user' );
+		}
+		if( !isset( $menu_perms[ 'menu-comments' ] ) && current_user_can('edit_posts')) {
+			$wp_toolbar->remove_node( 'comments' );
+		}
+		if( !isset( $menu_perms[ 'menu-content' ] ) && current_user_can('create_posts')) {
+			$wp_toolbar->remove_node( 'new-content' );
+		}
+		if( !isset( $menu_perms[ 'dash_mysites' ] ) && current_user_can('read')) {
+			$wp_toolbar->remove_node( 'my-sites' );
+		}
 }
-
 
 function ds_menu_disable() {
 	global $submenu, $menu;
 		$menu_perms = get_site_option( "menu_items" );
 		if( is_array( $menu_perms ) == false )
 		$menu_perms = array();
-		
-
 
 			if( !isset($menu_perms[ 'super_admin' ] ) && is_super_admin()) 
 			return;
@@ -88,20 +87,6 @@ function ds_menu_disable() {
 		}
 	}
 
-	// 'Dashboard Dashboard'
-	if( !isset($menu_perms[ 'dash_dash' ]) && current_user_can('read')) {
-		if(!empty($submenu['index.php'])) {
-		foreach($submenu['index.php'] as $key => $sm) {
-			if(__($sm[0]) == __('Dashboard') || $sm[2] == "index.php") {
-				unset($submenu['index.php'][$key]);
-				break;
-				}
-			}
-		}
-		if( strpos($_SERVER['REQUEST_URI'], 'index.php'))	
-			wp_redirect('profile.php');
-	}
-
 	// 'Dashboard My Sites'
 	if( !isset($menu_perms[ 'dash_mysites' ]) && current_user_can('read')) {
 		if(!empty($submenu['index.php'])) {
@@ -113,7 +98,8 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'my-sites.php'))	
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
+
 	}
 
 	// 'Posts'
@@ -141,7 +127,7 @@ function ds_menu_disable() {
 		}
 		//else 'Pages' will redirect too	
 		if( strpos($_SERVER['REQUEST_URI'], 'edit.php') && !strpos($_SERVER['REQUEST_URI'], 'edit.php?post_type=page'))
-		wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 		
 	// 'Posts Add New'
@@ -156,7 +142,7 @@ function ds_menu_disable() {
 		}
 	//else 'Pages Add New' will redirect too	
 		if( strpos($_SERVER['REQUEST_URI'], 'post-new.php') && !strpos($_SERVER['REQUEST_URI'], 'post-new.php?post_type=page'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}	
 
 	// 'Posts Tags'
@@ -170,7 +156,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'edit-tags.php?taxonomy=post_tag'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Posts Categories'
@@ -184,7 +170,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'edit-tags.php?taxonomy=category'))  // '/' needed to keep edit-link-categories.php from redirecting		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Media'
@@ -224,7 +210,8 @@ function ds_menu_disable() {
 				}
 			}
 		}
-		if( strpos($_SERVER['REQUEST_URI'], 'media-new.php') || strpos($_SERVER['REQUEST_URI'], 'media-upload.php'))			wp_die('Sorry, Super Admin has disabled Media Uploads.'); // kinda dumb if the media_buttons are not hidden in the post edit form.
+		if( strpos($_SERVER['REQUEST_URI'], 'media-new.php') || strpos($_SERVER['REQUEST_URI'], 'media-upload.php'))
+			wp_die('Sorry, Network Admin has disabled Media Uploads.'); // kinda dumb if the media_buttons are not hidden in the post edit form.
 	}
 	
 	// 'Links'
@@ -251,7 +238,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'link-manager.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Links Add New'
@@ -265,7 +252,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'link-add.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Links Link Categories'
@@ -279,7 +266,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'edit-link-categories.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Pages'
@@ -299,14 +286,14 @@ function ds_menu_disable() {
 	if( !isset($menu_perms[ 'pages_pages' ]) && current_user_can('edit_pages')) {
 		if(!empty($submenu['edit.php?post_type=page'])) {
 		foreach($submenu['edit.php?post_type=page'] as $key => $sm) {
-			if(__($sm[0]) == __('Pages') || $sm[2] == "edit.php?post_type=page") {
+			if(__($sm[0]) == __('All Pages') || $sm[2] == "edit.php?post_type=page") {
 				unset($submenu['edit.php?post_type=page'][$key]);
 				break;
 				}
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'edit.php?post_type=page'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Pages Add New'
@@ -314,13 +301,27 @@ function ds_menu_disable() {
 		if(!empty($submenu['edit.php?post_type=page'])) {
 		foreach($submenu['edit.php?post_type=page'] as $key => $sm) {
 			if(__($sm[0]) == __('Add New') || $sm[2] == "post-new.php?post_type=page") {
-				unset($submenu['post-new.php?post_type=page'][$key]);
+				unset($submenu['edit.php?post_type=page'][$key]);
 				break;
 				}
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'post-new.php?post_type=page'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
+	}
+
+	// 'Pages Tags'
+	if( !isset($menu_perms[ 'pages_tags' ]) && current_user_can('manage_categories')) {
+		if(!empty($submenu ['edit.php?post_type=page'])) {
+		foreach($submenu ['edit.php?post_type=page'] as $key => $sm) {
+			if(__($sm[0]) == __('Tags') || $sm[2] == "edit-tags.php?taxonomy=post_tag&post_type=page") {
+				unset($submenu ['edit.php?post_type=page'][$key]);
+				break;
+				}
+			}
+		}
+		if( strpos($_SERVER['REQUEST_URI'], 'edit-tags.php?taxonomy=post_tag&post_type=page'))		
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Comments'
@@ -335,7 +336,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'edit-comments.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}	
 	
 	// If 'Appearance' is hidden, Widgets and Themes are still url accessible
@@ -364,7 +365,7 @@ function ds_menu_disable() {
 		/*********
 		//  redirecting themes uri may break more than it is worth ... ie theme options pages
 		if( strpos($_SERVER['REQUEST_URI'], 'themes.php'))	
-			wp_redirect('profile.php'); 
+			{ wp_redirect('profile.php'); exit(); }
 			***********/
 	}
 
@@ -379,9 +380,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'widgets.php'))	
-			wp_redirect('profile.php'); 
-
-
+			{ wp_redirect('profile.php'); exit(); }
 	}
 
 	// 'Appearance Menus'
@@ -395,51 +394,23 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'nav-menus.php'))	
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 
 	// 'Plugins Plugins'
-	if( !isset($menu_perms[ 'plug_plug' ]) && current_user_can('activate_plugins')) { 
-		if(!empty($submenu['plugins.php'])) {
-		foreach($submenu['plugins.php'] as $key => $sm) {
+	if( !isset($menu_perms[ 'plug_plug' ]) && current_user_can('activate_plugins')) {
+		if(!empty($menu)) {
+		foreach($menu as $key => $sm) {
 			if(__($sm[0]) == __('Plugins') || $sm[2] == "plugins.php") {
-				unset($submenu['plugins.php'][$key]);
+				unset ($menu[$key]); // kinda dumb if comments are open and awaiting moderation
+				unset( $submenu[ 'plugins.php' ] );
 				break;
 				}
 			}
 		}
-		if( strpos($_SERVER['REQUEST_URI'], 'plugins.php'))	
-			wp_redirect('profile.php'); 
-	}
-	
-	// 'Plugins Add New'
-	if( !isset($menu_perms[ 'plug_ad' ]) && current_user_can('install_plugins')) { 
-		if(!empty($submenu['plugins.php'])) {
-		foreach($submenu['plugins.php'] as $key => $sm) {
-			if(__($sm[0]) == __('Add New') || $sm[2] == "plugin-install.php") {
-				unset($submenu['plugins.php'][$key]);
-				break;
-				}
-			}
-		}
-		if( strpos($_SERVER['REQUEST_URI'], 'plugin-install.php'))	
-			wp_redirect('profile.php'); 
-	}
-
-	// 'Plugins Editor'
-	if( !isset($menu_perms[ 'plug_ed' ]) && current_user_can('edit_plugins')) { 
-		if(!empty($submenu['plugins.php'])) {
-		foreach($submenu['plugins.php'] as $key => $sm) {
-			if(__($sm[0]) == __('Editor') || $sm[2] == "plugin-editor.php") {
-				unset($submenu['plugins.php'][$key]);
-				break;
-				}
-			}
-		}
-
-		if( strpos($_SERVER['REQUEST_URI'], 'plugin-editor.php'))	
-			wp_redirect('profile.php'); 
-	}
+		if( strpos($_SERVER['REQUEST_URI'], 'plugins.php'))		
+			{ wp_redirect('profile.php'); exit(); }
+	}	
 	
 	// if no 'Users' promote 'Profile'
 	if( !isset($menu_perms[ 'menu-users' ]) && current_user_can('list_users') ) {
@@ -458,32 +429,32 @@ function ds_menu_disable() {
 		} //	the redirect here is not possible, must also disable Author & Users to enable the redirect
 	}
 	
-	// 'Users Authors and Users'
+	// 'All Users'
 	if( !isset($menu_perms[ 'users_user' ]) && current_user_can('list_users')) {
 		if(!empty($submenu['users.php'])) {
 		foreach($submenu['users.php'] as $key => $sm) {
-			if(__($sm[0]) == __('Authors &amp; Users') || $sm[2] == "users.php") {
+			if(__($sm[0]) == __('All Users') || $sm[2] == "users.php") {
 				unset($submenu['users.php'][$key]);
 				break;
 				}
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], '/users.php'))  // '/' needed to keep wpmu-users.php from redirecting
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Users Add New'
 	if( !isset($menu_perms[ 'users_new' ]) && current_user_can('create_users')) {
 		if(!empty($submenu['users.php'])) {
 		foreach($submenu['users.php'] as $key => $sm) {
-			if(__($sm[0]) == __('Add New') || $sm[2] == "users-new.php") {
+			if(__($sm[0]) == __('Add New') || $sm[2] == "user-new.php") {
 				unset($submenu['users.php'][$key]);
 				break;
 				}
 			}
 		}
-		if( strpos($_SERVER['REQUEST_URI'], 'users-new.php')) 
-			wp_redirect('profile.php');
+		if( strpos($_SERVER['REQUEST_URI'], 'user-new.php')) 
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Users Your Profile'
@@ -519,21 +490,21 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'tools.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 		
 	// 'Tools Tools'
 	if( !isset($menu_perms[ 'tools_tools' ]) && current_user_can('edit_posts')) {
 		if(!empty($submenu['tools.php'])) {
 		foreach($submenu['tools.php'] as $key => $sm) {
-			if(__($sm[0]) == __('Tools') || $sm[2] == "tools.php") {
+			if(__($sm[0]) == __('Available Tools') || $sm[2] == "tools.php") {
 				unset($submenu['tools.php'][$key]);
 				break;
 				}
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'tools.php'))	
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Tools Import'
@@ -547,7 +518,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'import.php'))	
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Tools Export'
@@ -561,7 +532,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'export.php'))	
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Tools Delete Site'
@@ -575,7 +546,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'ms-delete-site.php'))	
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 
 	// 'Settings'
@@ -590,7 +561,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'options-general.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Settings General'
@@ -604,7 +575,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'options-general.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Settings Writing'
@@ -618,7 +589,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'options-writing.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Settings Reading'
@@ -632,7 +603,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'options-reading.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Settings Discussion'
@@ -646,7 +617,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'options-discussion.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Settings Media'
@@ -660,21 +631,7 @@ function ds_menu_disable() {
 			}
 		}
 		if( strpos($_SERVER['REQUEST_URI'], 'options-media.php'))		
-			wp_redirect('profile.php');
-	}
-	
-	// 'Settings Privacy'
-	if( !isset($menu_perms[ 'settings_priv' ]) && current_user_can('manage_options')) {
-		if(!empty($submenu['options-general.php'])) {
-		foreach($submenu['options-general.php'] as $key => $sm) {
-			if(__($sm[0]) == __('Privacy') || $sm[2] == "options-privacy.php") {
-				unset($submenu['options-general.php'][$key]);
-				break;
-				}
-			}
-		}
-		if( strpos($_SERVER['REQUEST_URI'], 'options-privacy.php'))		
-			wp_redirect('profile.php');
+			{ wp_redirect('profile.php'); exit(); }
 	}
 	
 	// 'Settings Permalinks'
@@ -687,82 +644,68 @@ function ds_menu_disable() {
 				}
 			}
 		}
-		if( strpos($_SERVER['REQUEST_URI'], 'options-permalink.php'))		
-			wp_redirect('profile.php');
+			if( strpos($_SERVER['REQUEST_URI'], 'options-permalink.php'))		
+				{ wp_redirect('profile.php'); exit(); }
+		}
+
 	}
-
-}
-
-// 'Appearance Editor'
-function ds_remove_themes_utility_last() {
-	$menu_perms = get_site_option( "menu_items" );
-	if( is_array( $menu_perms ) == false )
-		$menu_perms = array();
-			if( !isset($menu_perms[ 'super_admin' ] ) && is_super_admin())
-			return;
-	if( !isset($menu_perms[ 'app_ed' ]) ) {
-			remove_action('admin_menu', '_add_themes_utility_last',101);
-
-		if( strpos($_SERVER['REQUEST_URI'], 'theme-editor.php'))	
-			wp_redirect('profile.php'); 
+	
+	//------------------------------------------------------------------------//
+	//---Function Super Admin->Options------------------------------------------//
+	//---Options are saved as site_options on network/settings.php page-----------//
+	function ds_mu_menu_options() {
+		$menu_items = array( 
+			'plugins' 			=> __( 'Plugins' ),
+			'super_admin'	=> __('Super Admin gets the following limited menus, too?'),
+			'menu-dashboard'=> __('Dashboard'),
+			'dash_mysites'	=> __('Dashboard My Sites'),			
+			'menu-posts'				=> __('Posts'),
+			'posts_posts'	=> __('Posts Posts'),
+			'posts_new'		=> __('Posts Add New'),
+			'posts_cats'	=> __('Posts Categories'),
+			'posts_tags'	=> __('Posts Tags'),
+			'menu-media'			=> __('Media'),
+			'media_lib'		=> __('Media Library'),
+			'media_new'		=> __('Media Add New'),
+			'menu-links'				=> __('Links'),
+			'links_links'	=> __('Links Links'),
+			'links_new'		=> __('Links Add New'),
+			'links_cats'	=> __('Links Link Categories'),
+			'menu-pages'			=> __('Pages'),
+			'pages_pages'	=> __('Pages Pages'),
+			'pages_new'		=> __('Pages Add New'),
+			'pages_tags'	=> __('Pages Tags'),
+			'menu-comments'				=> __('Comments'),
+			'menu-content'				=>__('+ New'),
+			'menu-appearance'			=> __('Appearance'), 
+			'app_themes'	=> __('Appearance Themes'),
+			'app_widgets'	=> __('Appearance Widgets'),
+			'app_men'		=> __('Appearance Menus'),
+			'plug_plug'					=> __('Plugins'),
+			'menu-users'				=> __('Users'), 
+			'users_user'	=> __('Users All Users'),
+			'users_new'		=> __('Users Add New'),
+			'user_profile'	=> __('Users Your Profile'),
+			'menu-tools'				=> __('Tools'),
+			'tools_tools'	=> __('Tools Available Tools'),
+			'tools_im'		=> __('Tools Import'),
+			'tools_ex'		=> __('Tools Export'),
+			'tools_del'		=> __('Tools Delete Site'),
+			'menu-settings'				=> __('Settings'),
+			'settings_gen'	=> __('Settings General'),
+			'settings_writ'	=> __('Settings Writing'),
+			'settings_read'	=> __('Settings Reading'),
+			'settings_disc'	=> __('Settings Discussion'),
+			'settings_med'	=> __('Settings Media'),  
+			'settings_perm'	=> __('Settings Permalinks'),
+			 );
+			 return $menu_items;
+	}
+	function ds_menu_option() {
+		echo '<small>Menu Settings note: Disabling "Your Profile" may not be a good idea, there needs to be a page every user can see. Even though a menu(or submenu, or adminbar node) is disabled, access to the page via the url may still be possible. Plugins adding submenu items or adminbar nodes may conflict. Try <a href="http://wordpress.org/extend/plugins/toggle-meta-boxes-sitewide/">Toggle Meta Boxes Sitewide</a> plugin for removal of other extras. Happy testing!</small>';
 	}
 }
-
-//------------------------------------------------------------------------//
-//---Function Super Admin->Options------------------------------------------//
-//---Options are saved as site_options on ms-options.php page-----------//
-function ds_mu_menu_options() {
-	$menu_items = array( 
-		'plugins' 			=> __( 'Plugins' ),
-		'super_admin'	=> __('Super Admin gets the following limited menus, too?'),
-		'menu-dashboard'=> __('Dashboard'),
-		'dash_dash'		=> __('Dashboard Dashboard'),
-		'dash_mysites'	=> __('Dashboard My Sites'),			
-		'menu-posts'				=> __('Posts'),
-		'posts_posts'	=> __('Posts Posts'),
-		'posts_new'		=> __('Posts Add New'),
-		'posts_tags'	=> __('Posts Tags'),
-		'posts_cats'	=> __('Posts Categories'),
-		'menu-links'				=> __('Links'),
-		'links_links'	=> __('Links Links'),
-		'links_new'		=> __('Links Add New'),
-		'links_cats'	=> __('Links Link Categories'),
-		'menu-pages'			=> __('Pages'),
-		'pages_pages'	=> __('Pages Pages'),
-		'pages_new'		=> __('Pages Add New'),
-		'menu-media'			=> __('Media'),
-		'media_lib'		=> __('Media Library'),
-		'media_new'		=> __('Media Add New'),
-		'menu-comments'				=> __('Comments'),
-		'menu-appearance'			=> __('Appearance'), 
-		'app_themes'	=> __('Appearance Themes'),
-		'app_widgets'	=> __('Appearance Widgets'),
-		'app_men'		=> __('Appearance Menus'),
-		'app_ed'		=> __('Appearance Editor'),
-		'plug_plug'		=> __('Plugins Plugins'),
-		'plug_ad'		=> __('Plugins Add New'),
-		'plug_ed'		=> __('Plugins Editor'),
-		'menu-users'				=> __('Users'), 
-		'users_user'	=> __('Users Authors and Users'),
-		'users_new'		=> __('Users Add New'),
-		'user_profile'	=> __('Users Your Profile'),
-		'menu-tools'				=> __('Tools'),
-		'tools_tools'	=> __('Tools Tools'),
-		'tools_im'		=> __('Tools Import'),
-		'tools_ex'		=> __('Tools Export'),
-		'tools_del'		=> __('Tools Delete Site'),
-		'menu-settings'				=> __('Settings'),
-		'settings_gen'	=> __('Settings General'),
-		'settings_writ'	=> __('Settings Writing'),
-		'settings_read'	=> __('Settings Reading'),
-		'settings_disc'	=> __('Settings Discussion'),
-		'settings_med'	=> __('Settings Media'),  
-		'settings_priv'	=> __('Settings Privacy'),
-		'settings_perm'	=> __('Settings Permalinks'),
-		 );
-		 return $menu_items;
+if (class_exists("ds_menus")) {
+	$ds_menus = new ds_menus();	
 }
-function ds_menu_option() {
-	echo '<small>Menu Settings note: Disabling "Your Profile" may not be a good idea, there needs to be a page every user can see. Even though a menu(or submenu) is disabled, access to the menu page(or submenu pages) via the url may still be possible. Disabling "Media Edit" will add a "Sorry, uploads are closed." to the Media Upload Buttons as well. Plugins adding submenu items to an Adminbar type plugin may not be hidden in all browsers. Happy testing!</small>';
-}	
 ?>
